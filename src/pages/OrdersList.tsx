@@ -50,6 +50,7 @@ export function OrdersList() {
             <thead className="bg-via-card text-xs uppercase tracking-wide text-via-text-light">
               <tr>
                 <th className="text-left px-4 py-2.5">Date</th>
+                <th className="text-left px-4 py-2.5">Order #</th>
                 <th className="text-left px-4 py-2.5">Parent SKU</th>
                 <th className="text-left px-4 py-2.5">Buyer</th>
                 <th className="text-left px-4 py-2.5">Load Type</th>
@@ -63,6 +64,9 @@ export function OrdersList() {
                 <tr key={o.id} className="border-t border-via-border hover:bg-via-card/40">
                   <td className="px-4 py-2.5 text-via-text-light">
                     {new Date(o.created_at).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-via-text">
+                    #{o.invoice_payload.order_number}
                   </td>
                   <td className="px-4 py-2.5 font-mono text-via-text">{o.computed_sku_pattern}</td>
                   <td className="px-4 py-2.5 text-via-text">{buyerName(o.buyer_id)}</td>

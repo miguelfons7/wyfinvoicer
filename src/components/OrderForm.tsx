@@ -150,7 +150,7 @@ export function OrderForm({ buyers, fobs, loadTypes, salesReps, onSubmit }: Prop
               .map((f) => ({ value: f.id, label: f.name, sublabel: `Code: ${f.code}` }))}
           />
           <TextField
-            label="Trailer # (drives SKU suffix)"
+            label="Trailer #"
             value={values.trailer}
             onChange={(v) => setValues((s) => ({ ...s, trailer: v }))}
             placeholder="247"

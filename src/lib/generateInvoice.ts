@@ -16,20 +16,26 @@ export interface GenerateInvoiceInput {
  * Pure: turns a draft order's selections into the invoice payload that
  * mirrors the ViaOps Generate-Order output. Resolves buyer defaults
  * (Account Manager, Order Type, Payment Type, Carrier, Direct Shipping)
- * and computes the parent SKU pattern: WYF{fob.code}{loadType.code}{trailer || loadId}.
+ * and computes the parent SKU pattern: WYF{fob.code}{loadType.code}{loadId}.
  *
  * Examples (from Miguel's WYF tracking sheet):
- *   WYFRILLQ50457 = WYF · Romeoville IL · LQ · trailer 50457
- *   WYFAMDS49767  = WYF · Aberdeen MD · Salvage · trailer 49767
- * The suffix is the trailer number when present, otherwise the load ID.
+ *   WYFAMDLQ50483 = WYF · Aberdeen MD · LQ · Load ID 50483
+ *   WYFRILS50427  = WYF · Romeoville IL · Salvage · Load ID 50427
+ * The Load ID drives the SKU suffix.
  */
+function generateOrderNumber(): string {
+  // Mimic ViaOps order numbers seen in the WYF tracking sheet (e.g. 1386858, 1387235).
+  // Range 1380000-1399999 keeps it visually plausible for the POC.
+  return String(1_380_000 + Math.floor(Math.random() * 20_000))
+}
+
 export function generateInvoice(input: GenerateInvoiceInput): InvoicePayload {
   const { loadId, loadType, trailer, seal, po, buyer, fob, salesRep, shippingCost } = input
 
-  const skuSuffix = (trailer && trailer.trim() !== '') ? trailer.trim() : loadId
-  const parentSku = `WYF${fob.code}${loadType.code}${skuSuffix}`
+  const parentSku = `WYF${fob.code}${loadType.code}${loadId}`
 
   return {
+    order_number: generateOrderNumber(),
     account_manager: salesRep?.name ?? null,
     order_type: buyer.default_order_type,
     first_name: buyer.first_name,

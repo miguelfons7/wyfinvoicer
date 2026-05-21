@@ -15,24 +15,24 @@ export function SampleInvoice({ invoice }: Props) {
 
   return (
     <div className="bg-white rounded-md border border-via-border shadow-sm print-card overflow-hidden">
-      {/* Title bar — mirrors ViaOps "Order Submitted" header */}
-      <div className="bg-emerald-600 text-white px-6 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5" />
-          <h1 className="text-lg font-semibold">Order Submitted</h1>
-        </div>
-        <div className="text-xs text-white/90">
-          Generated {new Date(invoice.generated_at).toLocaleString()}
-        </div>
+      {/* Top header — Order #1389605 style, mirrors the ViaOps order page */}
+      <div className="border-b border-via-border px-6 py-4 flex items-center justify-between gap-3 bg-white">
+        <h2 className="text-3xl font-semibold text-via-navy tracking-tight">
+          Order <span className="font-mono">#{invoice.order_number}</span>
+        </h2>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold uppercase tracking-wide rounded-full">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Order Submitted
+        </span>
       </div>
 
       {/* Order facts strip */}
       <div className="bg-slate-50 border-b border-via-border px-6 py-3 grid grid-cols-2 md:grid-cols-5 gap-y-2 gap-x-4 text-sm">
-        <Pair label="Order #" value="DRAFT — created in ERP" mono />
         <Pair label="Date" value={new Date(invoice.generated_at).toLocaleDateString()} />
         <Pair label="Load ID" value={invoice.load_id} mono />
         <Pair label="Load Type" value={invoice.load_type} />
         <Pair label="FOB" value={invoice.fob} />
+        <Pair label="Customer" value={invoice.buyer_display_name} />
       </div>
 
       {/* Body — two-column ViaOps style */}

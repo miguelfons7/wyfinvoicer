@@ -39,6 +39,7 @@ export interface LoadType {
 }
 
 export interface InvoicePayload {
+  order_number: string
   account_manager: string | null
   order_type: string | null
   first_name: string | null
