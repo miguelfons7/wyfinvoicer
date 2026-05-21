@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env.local
+.env*.local
+.vite
+.DS_Store
+*.log
+
+# Private reference materials — do not push (contain real customer data)
+*.eml
+*.mhtml
+*.xlsx
+*.xls
