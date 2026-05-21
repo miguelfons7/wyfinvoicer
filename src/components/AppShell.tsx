@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { FilePlus2, ListOrdered, Settings, Truck } from 'lucide-react'
+import { FilePlus2, FlaskConical, ListOrdered, Settings, Truck } from 'lucide-react'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
@@ -28,6 +28,15 @@ export function AppShell() {
           <NavLink to="/orders" className={navLinkClass}>
             <ListOrdered className="w-4 h-4" /> Recent Orders
           </NavLink>
+          <div className="mt-2 mb-1 px-4 text-[10px] uppercase tracking-wide text-slate-500">
+            Beta tools
+          </div>
+          <NavLink to="/beta/email-import" className={navLinkClass}>
+            <FlaskConical className="w-4 h-4" /> Email Import
+          </NavLink>
+          <div className="mt-2 mb-1 px-4 text-[10px] uppercase tracking-wide text-slate-500">
+            Admin
+          </div>
           <NavLink to="/admin" className={navLinkClass}>
             <Settings className="w-4 h-4" /> Admin
           </NavLink>

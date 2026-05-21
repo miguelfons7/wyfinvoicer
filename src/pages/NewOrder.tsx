@@ -1,33 +1,53 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FilePlus2 } from 'lucide-react'
-import type { Buyer, Fob, LoadType, Order, SalesRep } from '../types'
+import type {
+  Customer,
+  Destination,
+  Fob,
+  LoadType,
+  Order,
+  Program,
+  SalesRep,
+} from '../types'
 import { store, newId } from '../lib/storage'
 import { generateInvoice } from '../lib/generateInvoice'
 import { OrderForm, type OrderFormValues } from '../components/OrderForm'
 
 export function NewOrder() {
   const navigate = useNavigate()
-  const [buyers, setBuyers] = useState<Buyer[]>([])
+  const [programs, setPrograms] = useState<Program[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [destinations, setDestinations] = useState<Destination[]>([])
   const [fobs, setFobs] = useState<Fob[]>([])
   const [loadTypes, setLoadTypes] = useState<LoadType[]>([])
   const [salesReps, setSalesReps] = useState<SalesRep[]>([])
 
   useEffect(() => {
-    setBuyers(store.getBuyers())
+    setPrograms(store.getPrograms())
+    setCustomers(store.getCustomers())
+    setDestinations(store.getDestinations())
     setFobs(store.getFobs())
     setLoadTypes(store.getLoadTypes())
     setSalesReps(store.getSalesReps())
   }, [])
 
   function handleSubmit(values: OrderFormValues) {
-    const buyer = buyers.find((b) => b.id === values.buyerId)
+    const program = programs.find((p) => p.id === values.programId)
+    const customer = customers.find((c) => c.id === values.customerId)
     const fob = fobs.find((f) => f.id === values.fobId)
-    const loadType = loadTypes.find((l) => l.id === values.loadTypeId)
-    if (!buyer || !fob || !loadType) return
+    if (!program || !customer || !fob) return
+
+    const loadType =
+      program.has_load_types && values.loadTypeId
+        ? loadTypes.find((l) => l.id === values.loadTypeId) ?? null
+        : null
+    const destination = values.destinationId
+      ? destinations.find((d) => d.id === values.destinationId) ?? null
+      : null
     const salesRep =
       salesReps.find((r) => r.id === values.salesRepId) ??
-      salesReps.find((r) => r.id === buyer.default_sales_rep_id) ??
+      salesReps.find((r) => r.id === customer.default_sales_rep_id) ??
       null
 
     const shippingRaw = values.shippingCost.trim()
@@ -35,29 +55,26 @@ export function NewOrder() {
     const shippingCost = shippingNum != null && Number.isFinite(shippingNum) ? shippingNum : null
 
     const invoice = generateInvoice({
-      loadId: values.loadId.trim(),
+      program,
+      loadId: values.loadId.trim() || null,
       loadType,
-      trailer: values.trailer.trim() || null,
-      seal: values.seal.trim() || null,
-      po: values.po.trim() || null,
-      buyer,
       fob,
-      salesRep,
       shippingCost,
+      customer,
+      destination,
+      salesRep,
     })
 
     const order: Order = {
       id: newId('ord'),
       created_at: new Date().toISOString(),
+      program_id: program.id,
       load_id: invoice.load_id,
-      load_type_id: loadType.id,
-      trailer: invoice.trailer,
-      seal: invoice.seal,
-      po: invoice.po,
-      buyer_id: buyer.id,
+      load_type_id: loadType?.id ?? null,
       fob_id: fob.id,
+      customer_id: customer.id,
+      destination_id: destination?.id ?? null,
       sales_rep_id: salesRep?.id ?? null,
-      computed_sku_pattern: invoice.parent_sku_pattern,
       status: 'draft',
       invoice_payload: invoice,
     }
@@ -75,14 +92,16 @@ export function NewOrder() {
           <div>
             <h1 className="text-2xl font-bold text-via-navy">New Order</h1>
             <p className="text-sm text-via-text-light">
-              Enter the load info — we'll generate a sample invoice mirroring the ViaOps order page.
+              Pick the program first, then fill the load and invoice details.
             </p>
           </div>
         </div>
       </header>
 
       <OrderForm
-        buyers={buyers}
+        programs={programs}
+        customers={customers}
+        destinations={destinations}
         fobs={fobs}
         loadTypes={loadTypes}
         salesReps={salesReps}

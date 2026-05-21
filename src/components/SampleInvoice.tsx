@@ -12,10 +12,11 @@ function fmtMoney(n: number | null | undefined): string {
 
 export function SampleInvoice({ invoice }: Props) {
   const subtotal = invoice.parent_sku_cost + (invoice.shipping_cost ?? 0)
+  const lineItemSubLabel = [invoice.load_type, invoice.fob].filter(Boolean).join(' · ')
 
   return (
     <div className="bg-white rounded-md border border-via-border shadow-sm print-card overflow-hidden">
-      {/* Top header — Order #1389605 style, mirrors the ViaOps order page */}
+      {/* Top header */}
       <div className="border-b border-via-border px-6 py-4 flex items-center justify-between gap-3 bg-white">
         <h2 className="text-3xl font-semibold text-via-navy tracking-tight">
           Order <span className="font-mono">#{invoice.order_number}</span>
@@ -29,16 +30,17 @@ export function SampleInvoice({ invoice }: Props) {
       {/* Order facts strip */}
       <div className="bg-slate-50 border-b border-via-border px-6 py-3 grid grid-cols-2 md:grid-cols-5 gap-y-2 gap-x-4 text-sm">
         <Pair label="Date" value={new Date(invoice.generated_at).toLocaleDateString()} />
-        <Pair label="Load ID" value={invoice.load_id} mono />
-        <Pair label="Load Type" value={invoice.load_type} />
+        <Pair label="Program" value={invoice.program_name} mono />
+        <Pair label="Load Type" value={invoice.load_type ?? '—'} />
         <Pair label="FOB" value={invoice.fob} />
-        <Pair label="Customer" value={invoice.buyer_display_name} />
+        <Pair label="Customer" value={invoice.customer_display_name} />
       </div>
 
-      {/* Body — two-column ViaOps style */}
       <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
         <Card title="Customer">
           <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+            <Field label="Customer Name" value={invoice.customer_display_name} highlight span={2} />
+            <Field label="Destination" value={invoice.destination_label} highlight span={2} />
             <Field label="First Name" value={invoice.first_name} />
             <Field label="Last Name" value={invoice.last_name} />
             <Field label="Company" value={invoice.company} span={2} />
@@ -65,10 +67,8 @@ export function SampleInvoice({ invoice }: Props) {
         <Card title="Shipping">
           <div className="grid grid-cols-2 gap-x-3 gap-y-3">
             <Field label="Carrier" value={invoice.carrier} span={2} />
-            <Field label="Trailer #" value={invoice.trailer} mono />
-            <Field label="Seal" value={invoice.seal} mono />
-            <Field label="PO #" value={invoice.po} mono span={2} />
             <Field label="Shipping Cost" value={fmtMoney(invoice.shipping_cost)} mono />
+            {invoice.load_id && <Field label="Load ID" value={invoice.load_id} mono />}
           </div>
         </Card>
 
@@ -83,10 +83,13 @@ export function SampleInvoice({ invoice }: Props) {
             </thead>
             <tbody>
               <tr className="border-b border-via-border">
-                <td className="py-2 pr-2 font-mono text-xs text-via-text">
-                  {invoice.parent_sku_pattern}
-                  <span className="block text-[10px] text-via-text-light font-sans not-italic">
-                    Parent SKU (placeholder — created in ERP)
+                <td className="py-2 pr-2 text-via-text">
+                  <span className="font-mono text-xs">{invoice.parent_sku_label}</span>
+                  {lineItemSubLabel && (
+                    <span className="block text-[11px] text-via-text-light">{lineItemSubLabel}</span>
+                  )}
+                  <span className="block text-[10px] text-via-text-light italic">
+                    Parent SKU (placeholder — real SKU created in ERP)
                   </span>
                 </td>
                 <td className="py-2 px-2 text-center text-via-text">1</td>
@@ -119,9 +122,9 @@ export function SampleInvoice({ invoice }: Props) {
       </div>
 
       <div className="border-t border-via-border bg-slate-50 px-6 py-3 text-xs text-via-text-light">
-        Highlighted fields are auto-resolved from the buyer record. Parent SKU pattern is
-        <span className="font-mono mx-1 text-via-text">{invoice.parent_sku_pattern}</span>
-        — the real SKU is created later in the ERP.
+        Highlighted fields are auto-resolved from the customer record. Parent SKU is
+        <span className="font-mono mx-1 text-via-text">{invoice.parent_sku_label}</span>
+        — the real SKU is generated later in the ERP.
       </div>
     </div>
   )

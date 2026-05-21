@@ -1,20 +1,35 @@
-export interface Buyer {
+export interface Program {
   id: string
-  display_name: string
+  name: string // e.g. "Load-WYF"
+  code: string // e.g. "WYF"
+  has_load_types: boolean
+  active: boolean
+}
+
+export interface Customer {
+  id: string
+  display_name: string // e.g. "Mayan Zeitlan"
   first_name: string | null
   last_name: string | null
   company: string | null
-  address1: string | null
-  address2: string | null
-  city: string | null
-  state: string | null
-  zip: string | null
   pt_buyer_id: string | null
   default_order_type: string | null
   default_payment_type: string | null
   default_carrier: string | null
   default_sales_rep_id: string | null
   is_direct_shipping: boolean
+  active: boolean
+}
+
+export interface Destination {
+  id: string
+  customer_id: string
+  label: string // e.g. "Phx AZ"
+  address1: string | null
+  address2: string | null
+  city: string | null
+  state: string | null
+  zip: string | null
   active: boolean
 }
 
@@ -40,8 +55,16 @@ export interface LoadType {
 
 export interface InvoicePayload {
   order_number: string
-  account_manager: string | null
-  order_type: string | null
+  // Program + load
+  program_name: string // "Load-WYF"
+  program_code: string // "WYF"
+  parent_sku_label: string // = program_name
+  load_id: string | null // optional now
+  load_type: string | null // null when program has no load types
+  fob: string
+  // Customer + Destination
+  customer_display_name: string
+  destination_label: string | null
   first_name: string | null
   last_name: string | null
   company: string | null
@@ -51,34 +74,27 @@ export interface InvoicePayload {
   state: string | null
   zip: string | null
   pt_buyer_id: string | null
-  carrier: string | null
-  trailer: string | null
-  seal: string | null
-  po: string | null
-  direct_shipping: boolean
+  // Account / shipping
+  account_manager: string | null
+  order_type: string | null
   payment_type: string | null
-  parent_sku_pattern: string
+  carrier: string | null
+  direct_shipping: boolean
   parent_sku_cost: number
   shipping_cost: number | null
-  load_id: string
-  load_type: string
-  fob: string
-  buyer_display_name: string
   generated_at: string
 }
 
 export interface Order {
   id: string
   created_at: string
-  load_id: string
-  load_type_id: string
-  trailer: string | null
-  seal: string | null
-  po: string | null
-  buyer_id: string
+  program_id: string
+  load_id: string | null
+  load_type_id: string | null
   fob_id: string
+  customer_id: string
+  destination_id: string | null
   sales_rep_id: string | null
-  computed_sku_pattern: string
   status: 'draft' | 'submitted' | 'cancelled'
   invoice_payload: InvoicePayload
 }

@@ -1,65 +1,65 @@
-import type { Buyer, Fob, InvoicePayload, LoadType, SalesRep } from '../types'
+import type {
+  Customer,
+  Destination,
+  Fob,
+  InvoicePayload,
+  LoadType,
+  Program,
+  SalesRep,
+} from '../types'
 
 export interface GenerateInvoiceInput {
-  loadId: string
-  loadType: LoadType
-  trailer: string | null
-  seal: string | null
-  po: string | null
-  buyer: Buyer
+  program: Program
+  loadId: string | null
+  loadType: LoadType | null
   fob: Fob
-  salesRep: SalesRep | null
   shippingCost: number | null
+  customer: Customer
+  destination: Destination | null
+  salesRep: SalesRep | null
 }
 
 /**
  * Pure: turns a draft order's selections into the invoice payload that
- * mirrors the ViaOps Generate-Order output. Resolves buyer defaults
+ * mirrors the ViaOps Generate-Order output. Resolves customer defaults
  * (Account Manager, Order Type, Payment Type, Carrier, Direct Shipping)
- * and computes the parent SKU pattern: WYF{fob.code}{loadType.code}{loadId}.
- *
- * Examples (from Miguel's WYF tracking sheet):
- *   WYFAMDLQ50483 = WYF · Aberdeen MD · LQ · Load ID 50483
- *   WYFRILS50427  = WYF · Romeoville IL · Salvage · Load ID 50427
- * The Load ID drives the SKU suffix.
+ * and uses the program name as the parent SKU placeholder (e.g. "Load-WYF").
+ * The actual serialized SKU is generated later in the ERP.
  */
 function generateOrderNumber(): string {
-  // Mimic ViaOps order numbers seen in the WYF tracking sheet (e.g. 1386858, 1387235).
-  // Range 1380000-1399999 keeps it visually plausible for the POC.
+  // Mimic ViaOps order numbers seen in the WYF tracking sheet.
   return String(1_380_000 + Math.floor(Math.random() * 20_000))
 }
 
 export function generateInvoice(input: GenerateInvoiceInput): InvoicePayload {
-  const { loadId, loadType, trailer, seal, po, buyer, fob, salesRep, shippingCost } = input
-
-  const parentSku = `WYF${fob.code}${loadType.code}${loadId}`
+  const { program, loadId, loadType, fob, shippingCost, customer, destination, salesRep } = input
 
   return {
     order_number: generateOrderNumber(),
+    program_name: program.name,
+    program_code: program.code,
+    parent_sku_label: program.name,
+    load_id: loadId,
+    load_type: program.has_load_types ? loadType?.name ?? null : null,
+    fob: fob.name,
+    customer_display_name: customer.display_name,
+    destination_label: destination?.label ?? null,
+    first_name: customer.first_name,
+    last_name: customer.last_name,
+    company: customer.company,
+    address1: destination?.address1 ?? null,
+    address2: destination?.address2 ?? null,
+    city: destination?.city ?? null,
+    state: destination?.state ?? null,
+    zip: destination?.zip ?? null,
+    pt_buyer_id: customer.pt_buyer_id,
     account_manager: salesRep?.name ?? null,
-    order_type: buyer.default_order_type,
-    first_name: buyer.first_name,
-    last_name: buyer.last_name,
-    company: buyer.company,
-    address1: buyer.address1,
-    address2: buyer.address2,
-    city: buyer.city,
-    state: buyer.state,
-    zip: buyer.zip,
-    pt_buyer_id: buyer.pt_buyer_id,
-    carrier: buyer.default_carrier,
-    trailer,
-    seal,
-    po,
-    direct_shipping: buyer.is_direct_shipping,
-    payment_type: buyer.default_payment_type,
-    parent_sku_pattern: parentSku,
+    order_type: customer.default_order_type,
+    payment_type: customer.default_payment_type,
+    carrier: customer.default_carrier,
+    direct_shipping: customer.is_direct_shipping,
     parent_sku_cost: 0,
     shipping_cost: shippingCost,
-    load_id: loadId,
-    load_type: loadType.name,
-    fob: fob.name,
-    buyer_display_name: buyer.display_name,
     generated_at: new Date().toISOString(),
   }
 }

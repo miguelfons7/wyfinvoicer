@@ -12,6 +12,7 @@ interface Field {
   label: string
   required?: boolean
   mono?: boolean
+  type?: 'text' | 'checkbox'
 }
 
 interface Props<T extends MinRow> {
@@ -47,7 +48,7 @@ export function SimpleListAdmin<T extends MinRow>({
 
   function addRow() {
     const blank: Record<string, unknown> = { id: newId(idPrefix), active: true }
-    for (const f of fields) blank[f.key] = ''
+    for (const f of fields) blank[f.key] = f.type === 'checkbox' ? false : ''
     setRows((rs) => [...rs, blank as unknown as T])
     setDirty(true)
   }
@@ -90,7 +91,12 @@ export function SimpleListAdmin<T extends MinRow>({
           <thead className="bg-via-card text-xs uppercase tracking-wide text-via-text-light">
             <tr>
               {fields.map((f) => (
-                <th key={f.key} className="text-left px-3 py-2.5">{f.label}</th>
+                <th
+                  key={f.key}
+                  className={`px-3 py-2.5 ${f.type === 'checkbox' ? 'text-center w-32' : 'text-left'}`}
+                >
+                  {f.label}
+                </th>
               ))}
               <th className="text-center px-3 py-2.5 w-24">Active</th>
               <th className="w-12"></th>
@@ -99,18 +105,33 @@ export function SimpleListAdmin<T extends MinRow>({
           <tbody>
             {rows.map((row, i) => (
               <tr key={row.id} className="border-t border-via-border">
-                {fields.map((f) => (
-                  <td key={f.key} className="px-3 py-1.5">
-                    <input
-                      value={String((row as unknown as Record<string, unknown>)[f.key] ?? '')}
-                      onChange={(e) => update(i, f.key, e.target.value)}
-                      placeholder={f.required ? 'Required' : ''}
-                      className={`w-full px-2 py-1.5 bg-white border border-via-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-via-navy/30 ${
-                        f.mono ? 'font-mono' : ''
-                      }`}
-                    />
-                  </td>
-                ))}
+                {fields.map((f) => {
+                  const raw = (row as unknown as Record<string, unknown>)[f.key]
+                  if (f.type === 'checkbox') {
+                    return (
+                      <td key={f.key} className="px-3 py-1.5 text-center">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(raw)}
+                          onChange={(e) => update(i, f.key, e.target.checked)}
+                          className="w-4 h-4 accent-via-navy"
+                        />
+                      </td>
+                    )
+                  }
+                  return (
+                    <td key={f.key} className="px-3 py-1.5">
+                      <input
+                        value={String(raw ?? '')}
+                        onChange={(e) => update(i, f.key, e.target.value)}
+                        placeholder={f.required ? 'Required' : ''}
+                        className={`w-full px-2 py-1.5 bg-white border border-via-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-via-navy/30 ${
+                          f.mono ? 'font-mono' : ''
+                        }`}
+                      />
+                    </td>
+                  )
+                })}
                 <td className="px-3 py-1.5 text-center">
                   <input
                     type="checkbox"

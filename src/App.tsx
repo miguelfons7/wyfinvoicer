@@ -4,6 +4,7 @@ import { NewOrder } from './pages/NewOrder'
 import { InvoicePreview } from './pages/InvoicePreview'
 import { OrdersList } from './pages/OrdersList'
 import { Admin } from './pages/Admin'
+import { EmailImport } from './pages/EmailImport'
 
 // Vite injects the base URL — `/` in dev, `/wyfinvoicer/` on GitHub Pages.
 // Trim the trailing slash so react-router treats it as a basename.
@@ -17,6 +18,7 @@ export default function App() {
           <Route index element={<NewOrder />} />
           <Route path="orders" element={<OrdersList />} />
           <Route path="orders/:id" element={<InvoicePreview />} />
+          <Route path="beta/email-import" element={<EmailImport />} />
           <Route path="admin" element={<Admin />} />
           <Route path="admin/:tab" element={<Admin />} />
         </Route>

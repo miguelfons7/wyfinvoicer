@@ -1,11 +1,12 @@
 import { NavLink, useParams } from 'react-router-dom'
 import { Settings, RotateCcw } from 'lucide-react'
-import { BuyersAdmin } from '../components/admin/BuyersAdmin'
+import { CustomersAdmin } from '../components/admin/CustomersAdmin'
 import { SimpleListAdmin } from '../components/admin/SimpleListAdmin'
 import { store } from '../lib/storage'
 
 const TABS = [
-  { id: 'buyers', label: 'Buyers' },
+  { id: 'programs', label: 'Programs' },
+  { id: 'customers', label: 'Customers' },
   { id: 'sales-reps', label: 'Sales Reps' },
   { id: 'fobs', label: 'FOBs' },
   { id: 'load-types', label: 'Load Types' },
@@ -13,10 +14,14 @@ const TABS = [
 
 export function Admin() {
   const { tab } = useParams<{ tab?: string }>()
-  const active = (tab ?? 'buyers') as (typeof TABS)[number]['id']
+  const active = (tab ?? 'programs') as (typeof TABS)[number]['id']
 
   function resetAll() {
-    if (!confirm('Reset ALL local data (buyers, FOBs, sales reps, load types, orders)? This cannot be undone.'))
+    if (
+      !confirm(
+        'Reset ALL local data (programs, customers, destinations, FOBs, sales reps, load types, orders)? This cannot be undone.',
+      )
+    )
       return
     store.resetAll()
     window.location.reload()
@@ -32,7 +37,7 @@ export function Admin() {
           <div>
             <h1 className="text-2xl font-bold text-via-navy">Admin</h1>
             <p className="text-sm text-via-text-light">
-              Manage the dropdowns JR sees. Saved in this browser only.
+              Manage the dropdowns the form sees. Saved in this browser only.
             </p>
           </div>
         </div>
@@ -62,7 +67,20 @@ export function Admin() {
         ))}
       </div>
 
-      {active === 'buyers' && <BuyersAdmin />}
+      {active === 'programs' && (
+        <SimpleListAdmin
+          title="Programs (Parent SKUs)"
+          read={store.getPrograms}
+          write={store.setPrograms}
+          fields={[
+            { key: 'name', label: 'Name (e.g. Load-WYF)', required: true },
+            { key: 'code', label: 'Code (e.g. WYF)', required: true, mono: true },
+            { key: 'has_load_types', label: 'Has Load Types', type: 'checkbox' },
+          ]}
+          idPrefix="pgm"
+        />
+      )}
+      {active === 'customers' && <CustomersAdmin />}
       {active === 'sales-reps' && (
         <SimpleListAdmin
           title="Sales Reps"

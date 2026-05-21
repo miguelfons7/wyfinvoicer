@@ -1,16 +1,31 @@
-import type { Buyer, Fob, LoadType, Order, SalesRep } from '../types'
+import type {
+  Customer,
+  Destination,
+  Fob,
+  LoadType,
+  Order,
+  Program,
+  SalesRep,
+} from '../types'
 import {
-  SEED_BUYERS,
+  SEED_CUSTOMERS,
+  SEED_DESTINATIONS,
   SEED_FOBS,
   SEED_LOAD_TYPES,
+  SEED_PROGRAMS,
   SEED_SALES_REPS,
 } from '../data/seedData'
 
-const KEY_BUYERS = 'wyf.buyers'
+const KEY_PROGRAMS = 'wyf.programs'
+const KEY_CUSTOMERS = 'wyf.customers'
+const KEY_DESTINATIONS = 'wyf.destinations'
 const KEY_FOBS = 'wyf.fobs'
 const KEY_LOAD_TYPES = 'wyf.loadTypes'
 const KEY_SALES_REPS = 'wyf.salesReps'
 const KEY_ORDERS = 'wyf.orders'
+
+// Legacy keys from V1; cleared on resetAll so old buyer data doesn't linger.
+const KEY_LEGACY_BUYERS = 'wyf.buyers'
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -27,8 +42,15 @@ function write<T>(key: string, value: T): void {
 }
 
 export const store = {
-  getBuyers: (): Buyer[] => read<Buyer[]>(KEY_BUYERS, SEED_BUYERS),
-  setBuyers: (rows: Buyer[]) => write(KEY_BUYERS, rows),
+  getPrograms: (): Program[] => read<Program[]>(KEY_PROGRAMS, SEED_PROGRAMS),
+  setPrograms: (rows: Program[]) => write(KEY_PROGRAMS, rows),
+
+  getCustomers: (): Customer[] => read<Customer[]>(KEY_CUSTOMERS, SEED_CUSTOMERS),
+  setCustomers: (rows: Customer[]) => write(KEY_CUSTOMERS, rows),
+
+  getDestinations: (): Destination[] =>
+    read<Destination[]>(KEY_DESTINATIONS, SEED_DESTINATIONS),
+  setDestinations: (rows: Destination[]) => write(KEY_DESTINATIONS, rows),
 
   getFobs: (): Fob[] => read<Fob[]>(KEY_FOBS, SEED_FOBS),
   setFobs: (rows: Fob[]) => write(KEY_FOBS, rows),
@@ -48,14 +70,18 @@ export const store = {
     write(KEY_ORDERS, all)
   },
   getOrder: (id: string): Order | undefined => store.getOrders().find((o) => o.id === id),
-  deleteOrder: (id: string) => write(KEY_ORDERS, store.getOrders().filter((o) => o.id !== id)),
+  deleteOrder: (id: string) =>
+    write(KEY_ORDERS, store.getOrders().filter((o) => o.id !== id)),
 
   resetAll: () => {
-    localStorage.removeItem(KEY_BUYERS)
+    localStorage.removeItem(KEY_PROGRAMS)
+    localStorage.removeItem(KEY_CUSTOMERS)
+    localStorage.removeItem(KEY_DESTINATIONS)
     localStorage.removeItem(KEY_FOBS)
     localStorage.removeItem(KEY_LOAD_TYPES)
     localStorage.removeItem(KEY_SALES_REPS)
     localStorage.removeItem(KEY_ORDERS)
+    localStorage.removeItem(KEY_LEGACY_BUYERS)
   },
 }
 
