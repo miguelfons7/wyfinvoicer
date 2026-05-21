@@ -5,9 +5,13 @@ import { InvoicePreview } from './pages/InvoicePreview'
 import { OrdersList } from './pages/OrdersList'
 import { Admin } from './pages/Admin'
 
+// Vite injects the base URL — `/` in dev, `/wyfinvoicer/` on GitHub Pages.
+// Trim the trailing slash so react-router treats it as a basename.
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route element={<AppShell />}>
           <Route index element={<NewOrder />} />

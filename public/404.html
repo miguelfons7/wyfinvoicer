@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WYF Invoicer</title>
+    <!--
+      SPA fallback for GitHub Pages.
+      When the user hits a deep link like /wyfinvoicer/orders/abc, GH Pages
+      serves this 404 page. We rewrite the URL into a single query string
+      that `index.html` decodes back into the real path on load.
+      Technique: https://github.com/rafgraph/spa-github-pages
+    -->
+    <script>
+      (function (l) {
+        // Number of path segments to preserve before the SPA route.
+        // 1 = preserve the `/wyfinvoicer` repo prefix.
+        var segmentCount = 1;
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?/' +
+          l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+        );
+      }(window.location));
+    </script>
+  </head>
+  <body></body>
+</html>
