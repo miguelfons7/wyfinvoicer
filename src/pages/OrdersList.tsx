@@ -41,7 +41,7 @@ export function OrdersList() {
               <tr>
                 <th className="text-left px-4 py-2.5">Date</th>
                 <th className="text-left px-4 py-2.5">Order #</th>
-                <th className="text-left px-4 py-2.5">Program</th>
+                <th className="text-left px-4 py-2.5">Parent SKU</th>
                 <th className="text-left px-4 py-2.5">Customer</th>
                 <th className="text-left px-4 py-2.5">Destination</th>
                 <th className="text-left px-4 py-2.5">Load Type</th>
@@ -61,7 +61,7 @@ export function OrdersList() {
                       #{inv?.order_number ?? '—'}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-via-text">
-                      {inv?.program_name ?? '—'}
+                      {inv?.parent_sku_full ?? inv?.program_name ?? '—'}
                     </td>
                     <td className="px-4 py-2.5 text-via-text">
                       {inv?.customer_display_name ?? '—'}

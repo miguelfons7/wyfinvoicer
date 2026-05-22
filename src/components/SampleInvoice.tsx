@@ -12,7 +12,10 @@ function fmtMoney(n: number | null | undefined): string {
 
 export function SampleInvoice({ invoice }: Props) {
   const subtotal = invoice.parent_sku_cost + (invoice.shipping_cost ?? 0)
-  const lineItemSubLabel = [invoice.load_type, invoice.fob].filter(Boolean).join(' · ')
+  const skuMain = invoice.parent_sku_full ?? invoice.parent_sku_label
+  const lineItemSubLabel = invoice.parent_sku_full
+    ? [invoice.parent_sku_label, invoice.load_type, invoice.fob].filter(Boolean).join(' · ')
+    : [invoice.load_type, invoice.fob].filter(Boolean).join(' · ')
 
   return (
     <div className="bg-white rounded-md border border-via-border shadow-sm print-card overflow-hidden">
@@ -28,12 +31,13 @@ export function SampleInvoice({ invoice }: Props) {
       </div>
 
       {/* Order facts strip */}
-      <div className="bg-slate-50 border-b border-via-border px-6 py-3 grid grid-cols-2 md:grid-cols-5 gap-y-2 gap-x-4 text-sm">
+      <div className="bg-slate-50 border-b border-via-border px-6 py-3 grid grid-cols-2 md:grid-cols-6 gap-y-2 gap-x-4 text-sm">
         <Pair label="Date" value={new Date(invoice.generated_at).toLocaleDateString()} />
         <Pair label="Program" value={invoice.program_name} mono />
         <Pair label="Load Type" value={invoice.load_type ?? '—'} />
         <Pair label="FOB" value={invoice.fob} />
         <Pair label="Customer" value={invoice.customer_display_name} />
+        <Pair label="Parent SKU" value={skuMain} mono />
       </div>
 
       <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
@@ -84,12 +88,14 @@ export function SampleInvoice({ invoice }: Props) {
             <tbody>
               <tr className="border-b border-via-border">
                 <td className="py-2 pr-2 text-via-text">
-                  <span className="font-mono text-xs">{invoice.parent_sku_label}</span>
+                  <span className="font-mono text-sm text-via-navy">{skuMain}</span>
                   {lineItemSubLabel && (
                     <span className="block text-[11px] text-via-text-light">{lineItemSubLabel}</span>
                   )}
                   <span className="block text-[10px] text-via-text-light italic">
-                    Parent SKU (placeholder — real SKU created in ERP)
+                    {invoice.parent_sku_full
+                      ? 'Serialized from Program + FOB + Load Type + Load ID'
+                      : 'Parent SKU placeholder — add a Load ID to serialize, or the real SKU is created in ERP'}
                   </span>
                 </td>
                 <td className="py-2 px-2 text-center text-via-text">1</td>
@@ -122,9 +128,11 @@ export function SampleInvoice({ invoice }: Props) {
       </div>
 
       <div className="border-t border-via-border bg-slate-50 px-6 py-3 text-xs text-via-text-light">
-        Highlighted fields are auto-resolved from the customer record. Parent SKU is
-        <span className="font-mono mx-1 text-via-text">{invoice.parent_sku_label}</span>
-        — the real SKU is generated later in the ERP.
+        Highlighted fields are auto-resolved from the customer record. Parent SKU:
+        <span className="font-mono mx-1 text-via-text">{skuMain}</span>
+        {invoice.parent_sku_full
+          ? '(serialized from Program · FOB · Load Type · Load ID).'
+          : '(no Load ID provided — only the program placeholder is shown).'}
       </div>
     </div>
   )

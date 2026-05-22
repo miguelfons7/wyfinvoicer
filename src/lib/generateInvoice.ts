@@ -34,11 +34,21 @@ function generateOrderNumber(): string {
 export function generateInvoice(input: GenerateInvoiceInput): InvoicePayload {
   const { program, loadId, loadType, fob, shippingCost, customer, destination, salesRep } = input
 
+  // Serialized SKU is built only when Load ID is provided. Format mirrors V1:
+  //   WYF + FOB code + Load Type code + Load ID  (when program has load types)
+  //   WM  + FOB code + Load ID                   (when program does not)
+  const trimmedLoadId = loadId?.trim() ?? ''
+  const ltSegment = program.has_load_types && loadType ? loadType.code : ''
+  const parentSkuFull = trimmedLoadId
+    ? `${program.code}${fob.code}${ltSegment}${trimmedLoadId}`
+    : null
+
   return {
     order_number: generateOrderNumber(),
     program_name: program.name,
     program_code: program.code,
     parent_sku_label: program.name,
+    parent_sku_full: parentSkuFull,
     load_id: loadId,
     load_type: program.has_load_types ? loadType?.name ?? null : null,
     fob: fob.name,

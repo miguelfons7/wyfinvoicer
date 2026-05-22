@@ -58,7 +58,8 @@ export interface InvoicePayload {
   // Program + load
   program_name: string // "Load-WYF"
   program_code: string // "WYF"
-  parent_sku_label: string // = program_name
+  parent_sku_label: string // = program_name (placeholder line-item label)
+  parent_sku_full: string | null // serialized SKU when load_id is set, e.g. "WYFAMDLQ50483"
   load_id: string | null // optional now
   load_type: string | null // null when program has no load types
   fob: string
