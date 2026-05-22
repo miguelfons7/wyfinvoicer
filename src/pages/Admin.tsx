@@ -8,6 +8,7 @@ const TABS = [
   { id: 'programs', label: 'Programs' },
   { id: 'customers', label: 'Customers' },
   { id: 'sales-reps', label: 'Sales Reps' },
+  { id: 'shippers', label: 'Shippers' },
   { id: 'fobs', label: 'FOBs' },
   { id: 'load-types', label: 'Load Types' },
 ] as const
@@ -88,6 +89,23 @@ export function Admin() {
           write={store.setSalesReps}
           fields={[{ key: 'name', label: 'Name', required: true }]}
           idPrefix="rep"
+        />
+      )}
+      {active === 'shippers' && (
+        <SimpleListAdmin
+          title="Shippers (Ship From — pickup origins for BOLs)"
+          read={store.getShippers}
+          write={store.setShippers}
+          fields={[
+            { key: 'name', label: 'Name (e.g. Wayfair Aberdeen DC)', required: true },
+            { key: 'contact', label: 'Contact' },
+            { key: 'address1', label: 'Address 1' },
+            { key: 'city', label: 'City' },
+            { key: 'state', label: 'State' },
+            { key: 'zip', label: 'Zip' },
+            { key: 'phone', label: 'Phone' },
+          ]}
+          idPrefix="shp"
         />
       )}
       {active === 'fobs' && (

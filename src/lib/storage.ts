@@ -6,6 +6,7 @@ import type {
   Order,
   Program,
   SalesRep,
+  Shipper,
 } from '../types'
 import {
   SEED_CUSTOMERS,
@@ -14,6 +15,7 @@ import {
   SEED_LOAD_TYPES,
   SEED_PROGRAMS,
   SEED_SALES_REPS,
+  SEED_SHIPPERS,
 } from '../data/seedData'
 
 const KEY_PROGRAMS = 'wyf.programs'
@@ -22,6 +24,7 @@ const KEY_DESTINATIONS = 'wyf.destinations'
 const KEY_FOBS = 'wyf.fobs'
 const KEY_LOAD_TYPES = 'wyf.loadTypes'
 const KEY_SALES_REPS = 'wyf.salesReps'
+const KEY_SHIPPERS = 'wyf.shippers'
 const KEY_ORDERS = 'wyf.orders'
 
 // Legacy keys from V1; cleared on resetAll so old buyer data doesn't linger.
@@ -61,6 +64,9 @@ export const store = {
   getSalesReps: (): SalesRep[] => read<SalesRep[]>(KEY_SALES_REPS, SEED_SALES_REPS),
   setSalesReps: (rows: SalesRep[]) => write(KEY_SALES_REPS, rows),
 
+  getShippers: (): Shipper[] => read<Shipper[]>(KEY_SHIPPERS, SEED_SHIPPERS),
+  setShippers: (rows: Shipper[]) => write(KEY_SHIPPERS, rows),
+
   getOrders: (): Order[] => read<Order[]>(KEY_ORDERS, []),
   saveOrder: (order: Order): void => {
     const all = store.getOrders()
@@ -80,6 +86,7 @@ export const store = {
     localStorage.removeItem(KEY_FOBS)
     localStorage.removeItem(KEY_LOAD_TYPES)
     localStorage.removeItem(KEY_SALES_REPS)
+    localStorage.removeItem(KEY_SHIPPERS)
     localStorage.removeItem(KEY_ORDERS)
     localStorage.removeItem(KEY_LEGACY_BUYERS)
   },

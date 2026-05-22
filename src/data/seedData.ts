@@ -1,4 +1,4 @@
-import type { Customer, Destination, Fob, LoadType, Program, SalesRep } from '../types'
+import type { Customer, Destination, Fob, LoadType, Program, SalesRep, Shipper } from '../types'
 
 // Luis Garcia is the default account manager for every customer in this POC.
 export const SEED_SALES_REPS: SalesRep[] = [
@@ -16,6 +16,81 @@ export const SEED_FOBS: Fob[] = [
   { id: 'fob-pr', name: 'Perris CA', code: 'PR', active: true },
   { id: 'fob-eky', name: 'Kentucky', code: 'EKY', active: true },
   { id: 'fob-ci', name: 'CI', code: 'CI', active: true },
+]
+
+export const SEED_SHIPPERS: Shipper[] = [
+  {
+    id: 'shp-wyf-amd',
+    name: 'Wayfair Aberdeen DC',
+    contact: 'Sameera Patel',
+    address1: '1801 Old Philadelphia Rd',
+    address2: null,
+    city: 'Aberdeen',
+    state: 'MD',
+    zip: '21001',
+    phone: '(443) 555-0142',
+    active: true,
+  },
+  {
+    id: 'shp-wyf-ril',
+    name: 'Wayfair Romeoville DC',
+    contact: 'Sameera Patel',
+    address1: '500 S Crossroads Pkwy',
+    address2: null,
+    city: 'Romeoville',
+    state: 'IL',
+    zip: '60446',
+    phone: '(815) 555-0118',
+    active: true,
+  },
+  {
+    id: 'shp-wyf-jfl',
+    name: 'Wayfair Jacksonville DC',
+    contact: 'Sameera Patel',
+    address1: '13333 Inland Way',
+    address2: null,
+    city: 'Jacksonville',
+    state: 'FL',
+    zip: '32218',
+    phone: '(904) 555-0193',
+    active: true,
+  },
+  {
+    id: 'shp-wyf-pr',
+    name: 'Wayfair Perris DC',
+    contact: 'Sameera Patel',
+    address1: '450 N Indian Ave',
+    address2: null,
+    city: 'Perris',
+    state: 'CA',
+    zip: '92571',
+    phone: '(951) 555-0170',
+    active: true,
+  },
+  {
+    id: 'shp-wm-dal',
+    name: 'Walmart DC #6088',
+    contact: 'Logistics Desk',
+    address1: '5100 W Bethel Rd',
+    address2: null,
+    city: 'Coppell',
+    state: 'TX',
+    zip: '75019',
+    phone: '(972) 555-0188',
+    active: true,
+  },
+  {
+    id: 'shp-tgt-mn',
+    name: 'Target DC T0561',
+    contact: 'Logistics Desk',
+    address1: '7000 Target Pkwy N',
+    address2: null,
+    city: 'Brooklyn Park',
+    state: 'MN',
+    zip: '55445',
+    phone: '(763) 555-0124',
+    active: true,
+  },
 ]
 
 export const SEED_LOAD_TYPES: LoadType[] = [

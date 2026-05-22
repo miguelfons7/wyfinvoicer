@@ -39,6 +39,19 @@ export interface SalesRep {
   active: boolean
 }
 
+export interface Shipper {
+  id: string
+  name: string // e.g. "Wayfair Aberdeen DC"
+  contact: string | null
+  address1: string | null
+  address2: string | null
+  city: string | null
+  state: string | null
+  zip: string | null
+  phone: string | null
+  active: boolean
+}
+
 export interface Fob {
   id: string
   name: string
@@ -86,6 +99,42 @@ export interface InvoicePayload {
   generated_at: string
 }
 
+export type FreightTerms = 'Prepaid' | 'Collect' | '3rd Party'
+
+export interface BolData {
+  bol_number: string
+  date: string // ISO
+  // Ship From (Shipper)
+  shipper_name: string | null
+  shipper_address1: string | null
+  shipper_address2: string | null
+  shipper_city: string | null
+  shipper_state: string | null
+  shipper_zip: string | null
+  shipper_phone: string | null
+  // Ship To (Customer + Destination) — mirrored from the invoice payload
+  ship_to_name: string
+  ship_to_company: string | null
+  ship_to_address1: string | null
+  ship_to_address2: string | null
+  ship_to_city: string | null
+  ship_to_state: string | null
+  ship_to_zip: string | null
+  // Carrier
+  carrier_name: string | null
+  trailer_number: string | null
+  seal_number: string | null
+  scac: string | null
+  // Freight + commodity
+  freight_terms: FreightTerms
+  special_instructions: string | null
+  pallet_count: number | null
+  package_count: number | null
+  total_weight: number | null
+  commodity_description: string | null
+  customer_order_no: string // generally the invoice/order number
+}
+
 export interface Order {
   id: string
   created_at: string
@@ -96,8 +145,12 @@ export interface Order {
   customer_id: string
   destination_id: string | null
   sales_rep_id: string | null
+  shipper_id: string | null
+  notify_customer: boolean
+  notify_am: boolean
   status: 'draft' | 'submitted' | 'cancelled'
   invoice_payload: InvoicePayload
+  bol_data: BolData | null
 }
 
 export interface ParsedLoadEmail {

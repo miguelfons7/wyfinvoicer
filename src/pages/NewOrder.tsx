@@ -9,9 +9,11 @@ import type {
   Order,
   Program,
   SalesRep,
+  Shipper,
 } from '../types'
 import { store, newId } from '../lib/storage'
 import { generateInvoice } from '../lib/generateInvoice'
+import { generateBol } from '../lib/generateBol'
 import { OrderForm, type OrderFormValues } from '../components/OrderForm'
 
 export function NewOrder() {
@@ -22,6 +24,7 @@ export function NewOrder() {
   const [fobs, setFobs] = useState<Fob[]>([])
   const [loadTypes, setLoadTypes] = useState<LoadType[]>([])
   const [salesReps, setSalesReps] = useState<SalesRep[]>([])
+  const [shippers, setShippers] = useState<Shipper[]>([])
 
   useEffect(() => {
     setPrograms(store.getPrograms())
@@ -30,6 +33,7 @@ export function NewOrder() {
     setFobs(store.getFobs())
     setLoadTypes(store.getLoadTypes())
     setSalesReps(store.getSalesReps())
+    setShippers(store.getShippers())
   }, [])
 
   function handleSubmit(values: OrderFormValues) {
@@ -49,6 +53,7 @@ export function NewOrder() {
       salesReps.find((r) => r.id === values.salesRepId) ??
       salesReps.find((r) => r.id === customer.default_sales_rep_id) ??
       null
+    const shipper = values.shipperId ? shippers.find((s) => s.id === values.shipperId) ?? null : null
 
     const shippingRaw = values.shippingCost.trim()
     const shippingNum = shippingRaw === '' ? null : Number(shippingRaw.replace(/[,$\s]/g, ''))
@@ -65,6 +70,10 @@ export function NewOrder() {
       salesRep,
     })
 
+    const bol = values.createBol
+      ? generateBol({ invoice, shipper, form: values.bolForm })
+      : null
+
     const order: Order = {
       id: newId('ord'),
       created_at: new Date().toISOString(),
@@ -75,8 +84,12 @@ export function NewOrder() {
       customer_id: customer.id,
       destination_id: destination?.id ?? null,
       sales_rep_id: salesRep?.id ?? null,
+      shipper_id: shipper?.id ?? null,
+      notify_customer: values.notifyCustomer,
+      notify_am: values.notifyAm,
       status: 'draft',
       invoice_payload: invoice,
+      bol_data: bol,
     }
     store.saveOrder(order)
     navigate(`/orders/${order.id}`)
@@ -105,6 +118,7 @@ export function NewOrder() {
         fobs={fobs}
         loadTypes={loadTypes}
         salesReps={salesReps}
+        shippers={shippers}
         onSubmit={handleSubmit}
       />
     </div>

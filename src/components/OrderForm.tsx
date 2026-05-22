@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Sparkles } from 'lucide-react'
-import type { Customer, Destination, Fob, LoadType, Program, SalesRep } from '../types'
+import { Sparkles, FileSignature } from 'lucide-react'
+import type {
+  Customer,
+  Destination,
+  Fob,
+  FreightTerms,
+  LoadType,
+  Program,
+  SalesRep,
+  Shipper,
+} from '../types'
 import { SearchableSelect } from './SearchableSelect'
+import { EMPTY_BOL_FORM, type BolFormFields } from '../lib/generateBol'
 
 export interface OrderFormValues {
   programId: string | null
@@ -12,6 +22,11 @@ export interface OrderFormValues {
   customerId: string | null
   destinationId: string | null
   salesRepId: string | null
+  notifyCustomer: boolean
+  notifyAm: boolean
+  createBol: boolean
+  shipperId: string | null
+  bolForm: BolFormFields
 }
 
 interface Props {
@@ -21,6 +36,7 @@ interface Props {
   fobs: Fob[]
   loadTypes: LoadType[]
   salesReps: SalesRep[]
+  shippers: Shipper[]
   onSubmit: (values: OrderFormValues) => void
 }
 
@@ -33,7 +49,14 @@ const empty: OrderFormValues = {
   customerId: null,
   destinationId: null,
   salesRepId: null,
+  notifyCustomer: false,
+  notifyAm: false,
+  createBol: false,
+  shipperId: null,
+  bolForm: { ...EMPTY_BOL_FORM },
 }
+
+const FREIGHT_TERMS: FreightTerms[] = ['Prepaid', 'Collect', '3rd Party']
 
 export function OrderForm({
   programs,
@@ -42,6 +65,7 @@ export function OrderForm({
   fobs,
   loadTypes,
   salesReps,
+  shippers,
   onSubmit,
 }: Props) {
   const [values, setValues] = useState<OrderFormValues>(empty)
@@ -53,28 +77,27 @@ export function OrderForm({
   const programHasLoadTypes = selectedProgram?.has_load_types ?? true
 
   const customerDestinations = useMemo(
-    () => (values.customerId ? destinations.filter((d) => d.customer_id === values.customerId && d.active) : []),
+    () =>
+      values.customerId
+        ? destinations.filter((d) => d.customer_id === values.customerId && d.active)
+        : [],
     [destinations, values.customerId],
   )
 
-  // Clear Load Type when switching to a program that doesn't use them
   useEffect(() => {
     if (selectedProgram && !selectedProgram.has_load_types && values.loadTypeId !== null) {
       setValues((v) => ({ ...v, loadTypeId: null }))
     }
   }, [selectedProgram, values.loadTypeId])
 
-  // When customer changes: auto-pick destination if there's only one; default the sales rep
   useEffect(() => {
     if (!values.customerId) return
     const customer = customers.find((c) => c.id === values.customerId)
     setValues((v) => {
       const next = { ...v }
-      // Auto-pick single destination
       if (customerDestinations.length === 1 && !next.destinationId) {
         next.destinationId = customerDestinations[0].id
       }
-      // Default account manager
       if (customer?.default_sales_rep_id && !next.salesRepId) {
         next.salesRepId = customer.default_sales_rep_id
       }
@@ -87,12 +110,17 @@ export function OrderForm({
     values.fobId !== null &&
     values.customerId !== null &&
     (!programHasLoadTypes || values.loadTypeId !== null) &&
-    (customerDestinations.length === 0 || values.destinationId !== null)
+    (customerDestinations.length === 0 || values.destinationId !== null) &&
+    (!values.createBol || values.shipperId !== null)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
     onSubmit(values)
+  }
+
+  function updBol<K extends keyof BolFormFields>(key: K, val: BolFormFields[K]) {
+    setValues((v) => ({ ...v, bolForm: { ...v.bolForm, [key]: val } }))
   }
 
   return (
@@ -208,6 +236,151 @@ export function OrderForm({
         </div>
       </section>
 
+      <section className="bg-via-card rounded-xl border border-via-border p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-via-navy uppercase tracking-wide">
+          Actions
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <CheckOption
+            label="Notify Customer"
+            description="Flag a customer notification (email preview shown on the invoice)."
+            checked={values.notifyCustomer}
+            onChange={(v) => setValues((s) => ({ ...s, notifyCustomer: v }))}
+          />
+          <CheckOption
+            label="Notify AM"
+            description="Flag a heads-up to the account manager."
+            checked={values.notifyAm}
+            onChange={(v) => setValues((s) => ({ ...s, notifyAm: v }))}
+          />
+          <CheckOption
+            label="Create BOL"
+            description="Generate a Bill of Lading alongside the invoice."
+            checked={values.createBol}
+            onChange={(v) => setValues((s) => ({ ...s, createBol: v }))}
+          />
+        </div>
+      </section>
+
+      {values.createBol && (
+        <section className="bg-via-card rounded-xl border-2 border-via-orange/40 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <FileSignature className="w-4 h-4 text-via-orange" />
+            <h2 className="text-sm font-semibold text-via-navy uppercase tracking-wide">
+              Bill of Lading
+            </h2>
+          </div>
+          <p className="text-xs text-via-text-light -mt-2">
+            Ship-To pulls from the selected Customer + Destination. Pick a Shipper for Ship-From, then fill the carrier + freight info.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SearchableSelect
+              label="Shipper (Ship From) *"
+              placeholder="Type shipper name…"
+              value={values.shipperId}
+              onChange={(v) => setValues((s) => ({ ...s, shipperId: v }))}
+              options={shippers
+                .filter((s) => s.active)
+                .map((s) => ({
+                  value: s.id,
+                  label: s.name,
+                  sublabel: [s.city, s.state].filter(Boolean).join(', ') || undefined,
+                }))}
+            />
+            <TextField
+              label="Carrier Name"
+              value={values.bolForm.carrierName}
+              onChange={(v) => updBol('carrierName', v)}
+              placeholder="e.g. Santa Fe"
+            />
+            <TextField
+              label="Trailer Number"
+              value={values.bolForm.trailerNumber}
+              onChange={(v) => updBol('trailerNumber', v)}
+              placeholder="247"
+            />
+            <TextField
+              label="Seal Number"
+              value={values.bolForm.sealNumber}
+              onChange={(v) => updBol('sealNumber', v)}
+              placeholder="64671074"
+            />
+            <TextField
+              label="SCAC"
+              value={values.bolForm.scac}
+              onChange={(v) => updBol('scac', v)}
+              placeholder="Optional"
+            />
+            <div>
+              <span className="block text-xs font-semibold text-via-text uppercase tracking-wide mb-1.5">
+                Freight Charge Terms
+              </span>
+              <div className="flex gap-2">
+                {FREIGHT_TERMS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => updBol('freightTerms', t)}
+                    className={`px-3 py-2 text-sm rounded-lg border ${
+                      values.bolForm.freightTerms === t
+                        ? 'bg-via-navy text-white border-via-navy'
+                        : 'bg-white text-via-text border-via-border hover:bg-via-card'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <TextField
+              label="# of Pallets"
+              value={values.bolForm.palletCount}
+              onChange={(v) => updBol('palletCount', v)}
+              placeholder="24"
+              inputMode="numeric"
+            />
+            <TextField
+              label="# of Packages"
+              value={values.bolForm.packageCount}
+              onChange={(v) => updBol('packageCount', v)}
+              placeholder="24"
+              inputMode="numeric"
+            />
+            <TextField
+              label="Total Weight (lb)"
+              value={values.bolForm.totalWeight}
+              onChange={(v) => updBol('totalWeight', v)}
+              placeholder="14400"
+              inputMode="numeric"
+            />
+            <div className="md:col-span-2">
+              <span className="block text-xs font-semibold text-via-text uppercase tracking-wide mb-1.5">
+                Commodity Description
+              </span>
+              <textarea
+                value={values.bolForm.commodityDescription}
+                onChange={(e) => updBol('commodityDescription', e.target.value)}
+                placeholder="e.g. Mixed household goods — Wayfair LQ pallets"
+                rows={2}
+                className="w-full px-3 py-2 bg-white border border-via-border rounded-lg text-sm text-via-text focus:outline-none focus:ring-2 focus:ring-via-navy/30"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <span className="block text-xs font-semibold text-via-text uppercase tracking-wide mb-1.5">
+                Special Instructions
+              </span>
+              <textarea
+                value={values.bolForm.specialInstructions}
+                onChange={(e) => updBol('specialInstructions', e.target.value)}
+                placeholder="Optional"
+                rows={2}
+                className="w-full px-3 py-2 bg-white border border-via-border rounded-lg text-sm text-via-text focus:outline-none focus:ring-2 focus:ring-via-navy/30"
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="flex items-center justify-end gap-3">
         <button
           type="submit"
@@ -215,7 +388,7 @@ export function OrderForm({
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-via-orange text-white font-semibold text-sm rounded-lg hover:bg-via-orange-light disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Sparkles className="w-4 h-4" />
-          Generate Sample Invoice
+          {values.createBol ? 'Generate Invoice & BOL' : 'Generate Sample Invoice'}
         </button>
       </div>
     </form>
@@ -273,9 +446,38 @@ function DisabledField({ label, hint, warn }: { label: string; hint: string; war
       >
         — {hint}
       </div>
-      {warn && (
-        <p className="mt-1 text-xs text-amber-700">{hint}</p>
-      )}
+      {warn && <p className="mt-1 text-xs text-amber-700">{hint}</p>}
     </div>
+  )
+}
+
+function CheckOption({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string
+  description: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <label
+      className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border bg-white cursor-pointer transition-colors ${
+        checked ? 'border-via-navy ring-1 ring-via-navy/20' : 'border-via-border hover:bg-via-card/40'
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-1 w-4 h-4 accent-via-navy shrink-0"
+      />
+      <div className="min-w-0">
+        <div className="text-sm font-semibold text-via-text">{label}</div>
+        <div className="text-xs text-via-text-light leading-snug">{description}</div>
+      </div>
+    </label>
   )
 }
